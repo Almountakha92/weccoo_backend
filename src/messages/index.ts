@@ -16,6 +16,7 @@ export const appMessages = {
     created: 'Objet cree avec succes.',
     listFetched: 'Liste des objets recuperee.',
     detailFetched: 'Detail objet recupere.',
+    archived: 'Objet archive avec succes.',
     photoRequired: 'Au moins une photo est obligatoire.'
   },
   stats: {

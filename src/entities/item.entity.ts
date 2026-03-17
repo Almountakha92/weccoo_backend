@@ -16,4 +16,5 @@ export interface ItemEntity {
   likesCount: number;
   viewsCount: number;
   createdAt: string;
+  archivedAt?: string | null;
 }

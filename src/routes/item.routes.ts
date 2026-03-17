@@ -16,3 +16,4 @@ itemRouter.get('/:id', controller.getById);
 itemRouter.post('/:id/view', controller.registerView);
 itemRouter.post('/:id/like', authMiddleware, controller.toggleLike);
 itemRouter.post('/', authMiddleware, controller.create);
+itemRouter.patch('/:id/archive', authMiddleware, controller.archive);

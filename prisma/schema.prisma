@@ -12,6 +12,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum ItemType {
@@ -45,6 +46,7 @@ model Item {
   location      String
   ownerId       String
   createdAt     DateTime
+  archivedAt    DateTime?
   photos        String[]       @default([])
   likesCount    Int            @default(0)
   viewsCount    Int            @default(0)

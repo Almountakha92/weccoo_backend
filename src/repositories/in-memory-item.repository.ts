@@ -7,7 +7,9 @@ export class InMemoryItemRepository implements IItemRepository {
   private readonly likes = new Set<string>();
 
   async findAll(): Promise<ItemEntity[]> {
-    return [...this.items].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return [...this.items]
+      .filter((item) => !item.archivedAt)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
   async findById(id: string): Promise<ItemEntity | null> {
@@ -19,12 +21,22 @@ export class InMemoryItemRepository implements IItemRepository {
     const created: ItemEntity = {
       id: `it${this.items.length + 1}`,
       createdAt: new Date().toISOString(),
+      archivedAt: null,
       likesCount: 0,
       viewsCount: 0,
       ...item
     };
     this.items.push(created);
     return created;
+  }
+
+  async archive(itemId: string): Promise<ItemEntity> {
+    const item = this.items.find((entry) => entry.id === itemId);
+    if (!item) {
+      throw new Error('Item not found');
+    }
+    item.archivedAt = new Date().toISOString();
+    return item;
   }
 
   async incrementViews(itemId: string): Promise<ItemEntity> {

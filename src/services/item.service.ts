@@ -33,6 +33,18 @@ export class ItemService {
     });
   }
 
+  async archive(itemId: string, ownerId: string) {
+    const item = await this.itemRepository.findById(itemId);
+    if (!item) {
+      throw new HttpError(404, appMessages.common.notFound);
+    }
+    if (item.ownerId !== ownerId) {
+      throw new HttpError(403, appMessages.common.unauthorized);
+    }
+
+    return this.itemRepository.archive(itemId);
+  }
+
   async registerView(itemId: string) {
     return this.itemRepository.incrementViews(itemId);
   }

@@ -27,7 +27,8 @@ const toItemEntity = (item: any): ItemEntity => ({
   photos: Array.isArray(item.photos) ? item.photos : [],
   likesCount: item.likesCount ?? 0,
   viewsCount: item.viewsCount ?? 0,
-  createdAt: item.createdAt.toISOString()
+  createdAt: item.createdAt.toISOString(),
+  archivedAt: item.archivedAt ? item.archivedAt.toISOString() : null
 });
 
 export class PrismaItemRepository implements IItemRepository {
@@ -35,6 +36,7 @@ export class PrismaItemRepository implements IItemRepository {
 
   async findAll(): Promise<ItemEntity[]> {
     const items = await this.prismaAny.item.findMany({
+      where: { archivedAt: null } as any,
       include: {
         owner: {
           select: {
@@ -67,6 +69,23 @@ export class PrismaItemRepository implements IItemRepository {
     return item ? toItemEntity(item as any) : null;
   }
 
+  async archive(itemId: string): Promise<ItemEntity> {
+    const archived = await this.prismaAny.item.update({
+      where: { id: itemId },
+      data: { archivedAt: new Date() } as any,
+      include: {
+        owner: {
+          select: {
+            fullName: true,
+            whatsappPhone: true
+          } as any
+        }
+      }
+    });
+
+    return toItemEntity(archived as any);
+  }
+
   async create(item: CreateItemEntityInput): Promise<ItemEntity> {
     const created = await this.prismaAny.item.create({
       data: {
@@ -79,6 +98,7 @@ export class PrismaItemRepository implements IItemRepository {
         location: item.location,
         ownerId: item.ownerId,
         createdAt: new Date(),
+        archivedAt: null,
         photos: Array.isArray((item as any).photos) ? (item as any).photos : [],
         likesCount: 0,
         viewsCount: 0

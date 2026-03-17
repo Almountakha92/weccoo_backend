@@ -42,6 +42,19 @@ export class ItemController {
     }
   };
 
+  archive = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new HttpError(401, appMessages.common.unauthorized);
+      }
+
+      const item = await this.itemService.archive(req.params.id, req.user.id);
+      return res.status(200).json(ok(appMessages.items.archived, item));
+    } catch (error) {
+      return next(error);
+    }
+  };
+
   registerView = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
       const item = await this.itemService.registerView(req.params.id);
