@@ -25,6 +25,10 @@ const toItemEntity = (item: any): ItemEntity => ({
   ownerInitials: item.owner?.fullName ? getInitials(item.owner.fullName) : undefined,
   ownerWhatsappPhone: item.owner?.whatsappPhone,
   photos: Array.isArray(item.photos) ? item.photos : [],
+  moderationStatus: item.moderationStatus ?? 'approved',
+  moderatedAt: item.moderatedAt ? item.moderatedAt.toISOString() : null,
+  moderatedById: item.moderatedById ?? null,
+  moderationNote: item.moderationNote ?? null,
   likesCount: item.likesCount ?? 0,
   viewsCount: item.viewsCount ?? 0,
   createdAt: item.createdAt.toISOString(),
@@ -34,9 +38,16 @@ const toItemEntity = (item: any): ItemEntity => ({
 export class PrismaItemRepository implements IItemRepository {
   private readonly prismaAny = prisma as any;
 
-  async findAll(): Promise<ItemEntity[]> {
+  async findAll(request?: { userId?: string; includeOwn?: boolean }): Promise<ItemEntity[]> {
+    const where: any = request?.userId
+      ? {
+          archivedAt: null,
+          OR: [{ moderationStatus: 'approved' }, { ownerId: request.userId }]
+        }
+      : { archivedAt: null, moderationStatus: 'approved' };
+
     const items = await this.prismaAny.item.findMany({
-      where: { archivedAt: null } as any,
+      where,
       include: {
         owner: {
           select: {
@@ -99,6 +110,10 @@ export class PrismaItemRepository implements IItemRepository {
         ownerId: item.ownerId,
         createdAt: new Date(),
         archivedAt: null,
+        moderationStatus: (item as any).moderationStatus ?? 'approved',
+        moderatedAt: (item as any).moderatedAt ?? null,
+        moderatedById: (item as any).moderatedById ?? null,
+        moderationNote: (item as any).moderationNote ?? null,
         photos: Array.isArray((item as any).photos) ? (item as any).photos : [],
         likesCount: 0,
         viewsCount: 0
@@ -116,23 +131,67 @@ export class PrismaItemRepository implements IItemRepository {
     return toItemEntity(created as any);
   }
 
-  async incrementViews(itemId: string): Promise<ItemEntity> {
-    const updated = await this.prismaAny.item.update({
-      where: { id: itemId },
-      data: {
-        viewsCount: { increment: 1 }
-      } as any,
-      include: {
-        owner: {
-          select: {
-            fullName: true,
-            whatsappPhone: true
-          } as any
+  async incrementViews(itemId: string, viewerId?: string): Promise<ItemEntity> {
+    const result = await this.prismaAny.$transaction(async (tx: any) => {
+      const item = await tx.item.findUnique({
+        where: { id: itemId },
+        include: {
+          owner: {
+            select: {
+              fullName: true,
+              whatsappPhone: true
+            } as any
+          }
         }
+      });
+
+      if (!item) {
+        throw new Error('Item not found');
       }
+
+      if (!viewerId || item.ownerId === viewerId) {
+        return item;
+      }
+
+      const existingView = await tx.itemView.findUnique({
+        where: {
+          userId_itemId: {
+            userId: viewerId,
+            itemId
+          }
+        }
+      });
+
+      if (existingView) {
+        return item;
+      }
+
+      await tx.itemView.create({
+        data: {
+          id: randomUUID(),
+          userId: viewerId,
+          itemId,
+          createdAt: new Date()
+        } as any
+      });
+
+      return tx.item.update({
+        where: { id: itemId },
+        data: {
+          viewsCount: { increment: 1 }
+        } as any,
+        include: {
+          owner: {
+            select: {
+              fullName: true,
+              whatsappPhone: true
+            } as any
+          }
+        }
+      });
     });
 
-    return toItemEntity(updated as any);
+    return toItemEntity(result as any);
   }
 
   async toggleLike(itemId: string, userId: string): Promise<{ item: ItemEntity; liked: boolean }> {

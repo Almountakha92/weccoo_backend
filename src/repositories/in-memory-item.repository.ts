@@ -5,10 +5,12 @@ import type { ItemEntity, ItemLikeReceivedEntity } from '../entities';
 export class InMemoryItemRepository implements IItemRepository {
   private readonly items: ItemEntity[] = [...itemsSeed];
   private readonly likes = new Set<string>();
+  private readonly views = new Set<string>();
 
-  async findAll(): Promise<ItemEntity[]> {
+  async findAll(request?: { userId?: string }): Promise<ItemEntity[]> {
     return [...this.items]
       .filter((item) => !item.archivedAt)
+      .filter((item) => item.moderationStatus === 'approved' || (request?.userId && item.ownerId === request.userId))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
@@ -24,7 +26,11 @@ export class InMemoryItemRepository implements IItemRepository {
       archivedAt: null,
       likesCount: 0,
       viewsCount: 0,
-      ...item
+      ...item,
+      moderationStatus: (item as any).moderationStatus ?? 'approved',
+      moderatedAt: (item as any).moderatedAt ?? null,
+      moderatedById: (item as any).moderatedById ?? null,
+      moderationNote: (item as any).moderationNote ?? null
     };
     this.items.push(created);
     return created;
@@ -39,11 +45,22 @@ export class InMemoryItemRepository implements IItemRepository {
     return item;
   }
 
-  async incrementViews(itemId: string): Promise<ItemEntity> {
+  async incrementViews(itemId: string, viewerId?: string): Promise<ItemEntity> {
     const item = this.items.find((entry) => entry.id === itemId);
     if (!item) {
       throw new Error('Item not found');
     }
+
+    if (!viewerId || item.ownerId === viewerId) {
+      return item;
+    }
+
+    const key = `${viewerId}:${itemId}`;
+    if (this.views.has(key)) {
+      return item;
+    }
+
+    this.views.add(key);
     item.viewsCount = (item.viewsCount ?? 0) + 1;
     return item;
   }

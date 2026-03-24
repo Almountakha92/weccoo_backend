@@ -4,7 +4,8 @@ export const appMessages = {
     notFound: 'Ressource introuvable.',
     invalidPayload: 'Payload invalide.',
     unauthorized: 'Non autorise.',
-    internalError: 'Erreur interne du serveur.'
+    internalError: 'Erreur interne du serveur.',
+    databaseUnavailable: 'Base de donnees indisponible.'
   },
   auth: {
     signupSuccess: 'Compte cree avec succes.',
@@ -17,14 +18,12 @@ export const appMessages = {
     listFetched: 'Liste des objets recuperee.',
     detailFetched: 'Detail objet recupere.',
     archived: 'Objet archive avec succes.',
-    photoRequired: 'Au moins une photo est obligatoire.'
+    photoRequired: 'Au moins une photo est obligatoire.',
+    titleRequired: "Le titre de l'objet est obligatoire.",
+    categoryRequired: 'La categorie est obligatoire.',
+    locationRequired: 'La zone de remise est obligatoire.'
   },
   stats: {
     fetched: 'Statistiques recuperees.'
-  },
-  messages: {
-    conversationListFetched: 'Conversations recuperees.',
-    messageListFetched: 'Messages recuperes.',
-    sent: 'Message envoye.'
   }
 } as const;

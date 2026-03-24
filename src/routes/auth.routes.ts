@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { PrismaAuthRepository } from '../repositories/prisma-auth.repository';
 import { AuthService } from '../services/auth.service';
+import { adminAuthRouter } from './admin-auth.routes';
 
 const repository = new PrismaAuthRepository();
 const service = new AuthService(repository);
@@ -19,3 +20,4 @@ authRouter.get('/', (_req, res) => {
 authRouter.post('/signup', controller.signup);
 authRouter.post('/login', controller.login);
 authRouter.post('/verify-university-email', controller.verifyUniversityEmail);
+authRouter.use('/admin', adminAuthRouter);

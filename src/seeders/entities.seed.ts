@@ -1,4 +1,4 @@
-import type { ConversationEntity, ItemEntity, MessageEntity, UserEntity } from '../entities';
+import type { ItemEntity, UserEntity } from '../entities';
 import { hashPassword } from '../utils/password';
 
 const now = new Date().toISOString();
@@ -37,27 +37,12 @@ export const itemsSeed: ItemEntity[] = [
     location: 'Paris 14e',
     ownerId: 'u2',
     photos: [placeholderPhoto],
+    moderationStatus: 'approved',
+    moderatedAt: null,
+    moderatedById: null,
+    moderationNote: null,
     likesCount: 0,
     viewsCount: 0,
     createdAt: now
-  }
-];
-
-export const conversationsSeed: ConversationEntity[] = [
-  {
-    id: 'c1',
-    participantIds: ['u1', 'u2'],
-    itemId: 'it1',
-    createdAt: now
-  }
-];
-
-export const messagesSeed: MessageEntity[] = [
-  {
-    id: 'm1',
-    conversationId: 'c1',
-    senderId: 'u2',
-    text: 'Salut, le livre est toujours disponible.',
-    sentAt: now
   }
 ];

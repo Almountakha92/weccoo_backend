@@ -9,5 +9,6 @@ export const env = {
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
-  jwtSecret: process.env.JWT_SECRET ?? 'dev-only-secret-change-me'
+  jwtSecret: process.env.JWT_SECRET ?? 'dev-only-secret-change-me',
+  adminMfaRequired: (process.env.ADMIN_MFA_REQUIRED ?? 'true').toLowerCase() !== 'false'
 };

@@ -1,15 +1,11 @@
 import type { NextFunction, Request, Response } from 'express';
-import { appMessages } from '../messages';
 import { verifyAuthToken } from '../utils/token';
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const optionalAuthMiddleware = (req: Request, _res: Response, next: NextFunction) => {
   const authorizationHeader = req.headers.authorization;
 
   if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
-    return res.status(401).json({
-      message: appMessages.common.unauthorized,
-      data: null
-    });
+    return next();
   }
 
   const token = authorizationHeader.slice('Bearer '.length).trim();
@@ -23,11 +19,10 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
       campusId: payload.campusId ?? null,
       mfa: payload.mfa ?? false
     };
-    return next();
   } catch {
-    return res.status(401).json({
-      message: appMessages.common.unauthorized,
-      data: null
-    });
+    // ignore invalid token for optional auth
   }
+
+  return next();
 };
+

@@ -21,6 +21,27 @@ enum ItemType {
   pret
 }
 
+enum ItemModerationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum UserRole {
+  student
+  campus_admin
+  super_admin
+}
+
+model Campus {
+  id        String   @id
+  name      String
+  createdAt DateTime
+  users     User[]
+
+  @@unique([name])
+}
+
 model User {
   id             String         @id
   fullName       String
@@ -28,12 +49,32 @@ model User {
   email          String         @unique
   whatsappPhone  String?
   password       String
+  role           UserRole       @default(student)
+  campusId       String?
+  suspendedAt    DateTime?
+  mfaEnabled     Boolean        @default(false)
+  mfaSecret      String?
+  mfaTempSecret  String?
   createdAt      DateTime
   items          Item[]
   likes          ItemLike[]
-  sentMessages   Message[]
-  conversationsA Conversation[] @relation("ConversationParticipantA")
-  conversationsB Conversation[] @relation("ConversationParticipantB")
+  itemViews      ItemView[]
+
+  campus Campus? @relation(fields: [campusId], references: [id], onDelete: SetNull)
+}
+
+model AuditLog {
+  id         String   @id
+  actorId    String?
+  actorEmail String?
+  action     String
+  targetType String?
+  targetId   String?
+  campusId   String?
+  ip         String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime
 }
 
 model Item {
@@ -47,12 +88,16 @@ model Item {
   ownerId       String
   createdAt     DateTime
   archivedAt    DateTime?
+  moderationStatus ItemModerationStatus @default(approved)
+  moderatedAt      DateTime?
+  moderatedById    String?
+  moderationNote   String?
   photos        String[]       @default([])
   likesCount    Int            @default(0)
   viewsCount    Int            @default(0)
   owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   likes         ItemLike[]
-  conversations Conversation[]
+  views         ItemView[]
 }
 
 model ItemLike {
@@ -67,26 +112,14 @@ model ItemLike {
   @@unique([userId, itemId])
 }
 
-model Conversation {
-  id             String    @id
-  participantAId String
-  participantBId String
-  itemId         String
-  createdAt      DateTime
-  participantA   User      @relation("ConversationParticipantA", fields: [participantAId], references: [id], onDelete: Cascade)
-  participantB   User      @relation("ConversationParticipantB", fields: [participantBId], references: [id], onDelete: Cascade)
-  item           Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  messages       Message[]
+model ItemView {
+  id        String   @id
+  userId    String
+  itemId    String
+  createdAt DateTime
 
-  @@unique([participantAId, participantBId, itemId])
-}
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
-model Message {
-  id             String       @id
-  conversationId String
-  senderId       String
-  text           String
-  sentAt         DateTime
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  @@unique([userId, itemId])
 }

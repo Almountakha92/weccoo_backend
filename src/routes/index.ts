@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { prisma } from '../config/prisma';
 import { authRouter } from './auth.routes';
+import { adminRouter } from './admin.routes';
+import { adminModerationRouter } from './admin-moderation.routes';
+import { campusRouter } from './campus.routes';
 import { itemRouter } from './item.routes';
-import { messageRouter } from './message.routes';
 import { statsRouter } from './stats.routes';
 import { userRouter } from './user.routes';
 
@@ -28,7 +30,9 @@ apiRouter.get('/health/database', async (_req, res) => {
 });
 
 apiRouter.use('/auth', authRouter);
+apiRouter.use('/admin', adminRouter);
+apiRouter.use('/admin', adminModerationRouter);
+apiRouter.use('/campuses', campusRouter);
 apiRouter.use('/users', userRouter);
 apiRouter.use('/items', itemRouter);
-apiRouter.use('/messages', messageRouter);
 apiRouter.use('/stats', statsRouter);

@@ -1,6 +1,4 @@
 export {
   usersSeed,
-  itemsSeed,
-  conversationsSeed,
-  messagesSeed
+  itemsSeed
 } from './entities.seed';

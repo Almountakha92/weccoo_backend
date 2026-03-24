@@ -10,6 +10,12 @@ const toUserEntity = (user: any): UserEntity => ({
   email: user.email,
   whatsappPhone: user.whatsappPhone ?? '',
   password: user.password,
+  role: user.role,
+  campusId: user.campusId ?? null,
+  suspendedAt: user.suspendedAt ? user.suspendedAt.toISOString() : null,
+  mfaEnabled: user.mfaEnabled ?? false,
+  mfaSecret: user.mfaSecret ?? null,
+  mfaTempSecret: user.mfaTempSecret ?? null,
   createdAt: user.createdAt.toISOString()
 });
 
@@ -24,6 +30,12 @@ export class PrismaAuthRepository implements IAuthRepository {
         email: true,
         whatsappPhone: true,
         password: true,
+        role: true,
+        campusId: true,
+        suspendedAt: true,
+        mfaEnabled: true,
+        mfaSecret: true,
+        mfaTempSecret: true,
         createdAt: true
       } as any
     });
@@ -40,6 +52,8 @@ export class PrismaAuthRepository implements IAuthRepository {
         email: user.email.toLowerCase(),
         whatsappPhone: user.whatsappPhone,
         password: user.password,
+        role: (user as any).role ?? 'student',
+        campusId: (user as any).campusId ?? null,
         createdAt: new Date()
       } as any,
       select: {
@@ -49,6 +63,12 @@ export class PrismaAuthRepository implements IAuthRepository {
         email: true,
         whatsappPhone: true,
         password: true,
+        role: true,
+        campusId: true,
+        suspendedAt: true,
+        mfaEnabled: true,
+        mfaSecret: true,
+        mfaTempSecret: true,
         createdAt: true
       } as any
     });

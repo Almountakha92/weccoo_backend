@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { PrismaClient } from '../src/generated/prisma/client';
-import { conversationsSeed, itemsSeed, messagesSeed, usersSeed } from '../src/seeders/entities.seed';
+import { itemsSeed, usersSeed } from '../src/seeders/entities.seed';
+import { hashPassword } from '../src/utils/password';
 
 const prisma = new PrismaClient();
 
@@ -55,41 +56,39 @@ async function main() {
     });
   }
 
-  for (const conversation of conversationsSeed) {
-    await prisma.conversation.upsert({
-      where: { id: conversation.id },
-      update: {
-        participantAId: conversation.participantIds[0],
-        participantBId: conversation.participantIds[1],
-        itemId: conversation.itemId,
-        createdAt: new Date(conversation.createdAt)
-      },
-      create: {
-        id: conversation.id,
-        participantAId: conversation.participantIds[0],
-        participantBId: conversation.participantIds[1],
-        itemId: conversation.itemId,
-        createdAt: new Date(conversation.createdAt)
-      }
-    });
-  }
+  const superAdminEmail = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase();
+  const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD ?? '';
+  const superAdminName = process.env.SUPER_ADMIN_NAME ?? 'Super Admin';
 
-  for (const message of messagesSeed) {
-    await prisma.message.upsert({
-      where: { id: message.id },
+  if (superAdminEmail && superAdminPassword.length >= 8) {
+    await prisma.user.upsert({
+      where: { email: superAdminEmail },
       update: {
-        conversationId: message.conversationId,
-        senderId: message.senderId,
-        text: message.text,
-        sentAt: new Date(message.sentAt)
-      },
+        fullName: superAdminName,
+        email: superAdminEmail,
+        password: hashPassword(superAdminPassword),
+        role: 'super_admin',
+        campusId: null,
+        suspendedAt: null,
+        mfaEnabled: false,
+        mfaSecret: null,
+        mfaTempSecret: null
+      } as any,
       create: {
-        id: message.id,
-        conversationId: message.conversationId,
-        senderId: message.senderId,
-        text: message.text,
-        sentAt: new Date(message.sentAt)
-      }
+        id: `sa_${Date.now()}`,
+        fullName: superAdminName,
+        university: 'WECCOO',
+        email: superAdminEmail,
+        whatsappPhone: null,
+        password: hashPassword(superAdminPassword),
+        role: 'super_admin',
+        campusId: null,
+        suspendedAt: null,
+        mfaEnabled: false,
+        mfaSecret: null,
+        mfaTempSecret: null,
+        createdAt: new Date()
+      } as any
     });
   }
 

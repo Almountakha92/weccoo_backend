@@ -8,9 +8,9 @@ import { ok } from '../utils/response';
 export class ItemController {
   constructor(private readonly itemService: ItemService) {}
 
-  getAll = async (_req: Request, res: Response, next: NextFunction) => {
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const items = await this.itemService.findAll();
+      const items = await this.itemService.findAll(req.user?.id ? { userId: req.user.id } : undefined);
       return res.status(200).json(ok(appMessages.items.listFetched, items));
     } catch (error) {
       return next(error);
@@ -19,7 +19,7 @@ export class ItemController {
 
   getById = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
-      const item = await this.itemService.findById(req.params.id);
+      const item = await this.itemService.findById(req.params.id, req.user ? { userId: req.user.id, role: req.user.role } : undefined);
       return res.status(200).json(ok(appMessages.items.detailFetched, item));
     } catch (error) {
       return next(error);
@@ -34,7 +34,8 @@ export class ItemController {
 
       const item = await this.itemService.create({
         ...req.body,
-        ownerId: req.user.id
+        ownerId: req.user.id,
+        ownerRole: req.user.role
       });
       return res.status(201).json(ok(appMessages.items.created, item));
     } catch (error) {
@@ -57,7 +58,7 @@ export class ItemController {
 
   registerView = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
-      const item = await this.itemService.registerView(req.params.id);
+      const item = await this.itemService.registerView(req.params.id, req.user?.id);
       return res.status(200).json(ok(appMessages.common.ok, item));
     } catch (error) {
       return next(error);

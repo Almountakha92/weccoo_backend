@@ -1,4 +1,5 @@
 import 'express';
+import type { UserRole } from './user-role';
 
 declare global {
   namespace Express {
@@ -6,6 +7,9 @@ declare global {
       user?: {
         id: string;
         email: string;
+        role: UserRole;
+        campusId?: string | null;
+        mfa?: boolean;
       };
     }
   }

@@ -1,4 +1,5 @@
 export type ItemType = 'don' | 'echange' | 'pret';
+export type ItemModerationStatus = 'pending' | 'approved' | 'rejected';
 
 export interface ItemEntity {
   id: string;
@@ -12,6 +13,10 @@ export interface ItemEntity {
   ownerName?: string;
   ownerInitials?: string;
   ownerWhatsappPhone?: string;
+  moderationStatus: ItemModerationStatus;
+  moderatedAt?: string | null;
+  moderatedById?: string | null;
+  moderationNote?: string | null;
   photos?: string[];
   likesCount: number;
   viewsCount: number;

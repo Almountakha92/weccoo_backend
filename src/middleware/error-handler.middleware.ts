@@ -17,6 +17,14 @@ export const errorHandlerMiddleware = (
   // eslint-disable-next-line no-console
   console.error(error);
 
+  const prismaInitError = error as { name?: string };
+  if (prismaInitError?.name === 'PrismaClientInitializationError') {
+    return res.status(503).json({
+      message: appMessages.common.databaseUnavailable,
+      data: null
+    });
+  }
+
   if (error instanceof HttpError) {
     return res.status(error.statusCode).json({
       message: error.message,
