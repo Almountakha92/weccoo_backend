@@ -58,7 +58,11 @@ export class ItemController {
 
   registerView = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
-      const item = await this.itemService.registerView(req.params.id, req.user?.id);
+      const item = await this.itemService.registerView(req.params.id, req.user ? {
+        viewerId: req.user.id,
+        role: req.user.role,
+        campusId: req.user.campusId ?? null
+      } : undefined);
       return res.status(200).json(ok(appMessages.common.ok, item));
     } catch (error) {
       return next(error);
@@ -71,7 +75,11 @@ export class ItemController {
         throw new HttpError(401, appMessages.common.unauthorized);
       }
 
-      const result = await this.itemService.toggleLike(req.params.id, req.user.id);
+      const result = await this.itemService.toggleLike(req.params.id, {
+        userId: req.user.id,
+        role: req.user.role,
+        campusId: req.user.campusId ?? null
+      });
       return res.status(200).json(ok(appMessages.common.ok, result));
     } catch (error) {
       return next(error);

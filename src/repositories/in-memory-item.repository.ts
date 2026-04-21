@@ -45,7 +45,7 @@ export class InMemoryItemRepository implements IItemRepository {
     return item;
   }
 
-  async incrementViews(itemId: string, viewerId?: string): Promise<ItemEntity> {
+  async incrementViews(itemId: string, viewerId?: string, viewerCampusId?: string | null): Promise<ItemEntity> {
     const item = this.items.find((entry) => entry.id === itemId);
     if (!item) {
       throw new Error('Item not found');
@@ -53,6 +53,10 @@ export class InMemoryItemRepository implements IItemRepository {
 
     if (!viewerId || item.ownerId === viewerId) {
       return item;
+    }
+
+    if (viewerCampusId && item.ownerCampusId && item.ownerCampusId !== viewerCampusId) {
+      throw new Error('Item not found');
     }
 
     const key = `${viewerId}:${itemId}`;
@@ -65,9 +69,13 @@ export class InMemoryItemRepository implements IItemRepository {
     return item;
   }
 
-  async toggleLike(itemId: string, userId: string): Promise<{ item: ItemEntity; liked: boolean }> {
+  async toggleLike(itemId: string, userId: string, userCampusId?: string | null): Promise<{ item: ItemEntity; liked: boolean }> {
     const item = this.items.find((entry) => entry.id === itemId);
     if (!item) {
+      throw new Error('Item not found');
+    }
+
+    if (userCampusId && item.ownerCampusId && item.ownerCampusId !== userCampusId) {
       throw new Error('Item not found');
     }
 

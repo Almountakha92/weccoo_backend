@@ -148,7 +148,7 @@ export class PrismaItemRepository implements IItemRepository {
     return toItemEntity(created as any);
   }
 
-  async incrementViews(itemId: string, viewerId?: string): Promise<ItemEntity> {
+  async incrementViews(itemId: string, viewerId?: string, viewerCampusId?: string | null): Promise<ItemEntity> {
     const result = await this.prismaAny.$transaction(async (tx: any) => {
       const item = await tx.item.findUnique({
         where: { id: itemId },
@@ -169,6 +169,10 @@ export class PrismaItemRepository implements IItemRepository {
 
       if (!viewerId || item.ownerId === viewerId) {
         return item;
+      }
+
+      if (viewerCampusId && item.owner?.campusId && item.owner.campusId !== viewerCampusId) {
+        throw new Error('Item not found');
       }
 
       const existingView = await tx.itemView.findUnique({
@@ -213,21 +217,10 @@ export class PrismaItemRepository implements IItemRepository {
     return toItemEntity(result as any);
   }
 
-  async toggleLike(itemId: string, userId: string): Promise<{ item: ItemEntity; liked: boolean }> {
-    const existing = await this.prismaAny.itemLike.findUnique({
-      where: {
-        userId_itemId: {
-          userId,
-          itemId
-        }
-      }
-    });
-
-    if (existing) {
-      await this.prismaAny.itemLike.delete({ where: { id: existing.id } });
-      const updated = await this.prismaAny.item.update({
+  async toggleLike(itemId: string, userId: string, userCampusId?: string | null): Promise<{ item: ItemEntity; liked: boolean }> {
+    return this.prismaAny.$transaction(async (tx: any) => {
+      const item = await tx.item.findUnique({
         where: { id: itemId },
-        data: { likesCount: { decrement: 1 } } as any,
         include: {
           owner: {
             select: {
@@ -238,33 +231,67 @@ export class PrismaItemRepository implements IItemRepository {
           }
         }
       });
-      return { item: toItemEntity(updated as any), liked: false };
-    }
 
-    await this.prismaAny.itemLike.create({
-      data: {
-        id: randomUUID(),
-        userId,
-        itemId,
-        createdAt: new Date()
-      } as any
-    });
-
-    const updated = await this.prismaAny.item.update({
-      where: { id: itemId },
-      data: { likesCount: { increment: 1 } } as any,
-      include: {
-        owner: {
-          select: {
-            fullName: true,
-            whatsappPhone: true,
-            campusId: true
-          } as any
-        }
+      if (!item) {
+        throw new Error('Item not found');
       }
-    });
 
-    return { item: toItemEntity(updated as any), liked: true };
+      if (userCampusId && item.owner?.campusId && item.owner.campusId !== userCampusId) {
+        throw new Error('Item not found');
+      }
+
+      const existing = await tx.itemLike.findUnique({
+        where: {
+          userId_itemId: {
+            userId,
+            itemId
+          }
+        }
+      });
+
+      if (existing) {
+        await tx.itemLike.delete({ where: { id: existing.id } });
+        const updated = await tx.item.update({
+          where: { id: itemId },
+          data: { likesCount: { decrement: 1 } } as any,
+          include: {
+            owner: {
+              select: {
+                fullName: true,
+                whatsappPhone: true,
+                campusId: true
+              } as any
+            }
+          }
+        });
+        return { item: toItemEntity(updated as any), liked: false };
+      }
+
+      await tx.itemLike.create({
+        data: {
+          id: randomUUID(),
+          userId,
+          itemId,
+          createdAt: new Date()
+        } as any
+      });
+
+      const updated = await tx.item.update({
+        where: { id: itemId },
+        data: { likesCount: { increment: 1 } } as any,
+        include: {
+          owner: {
+            select: {
+              fullName: true,
+              whatsappPhone: true,
+              campusId: true
+            } as any
+          }
+        }
+      });
+
+      return { item: toItemEntity(updated as any), liked: true };
+    });
   }
 
   async findLikesReceivedByOwnerId(ownerId: string, limit = 10): Promise<ItemLikeReceivedEntity[]> {

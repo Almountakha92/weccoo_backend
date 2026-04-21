@@ -83,12 +83,24 @@ export class ItemService {
     return this.itemRepository.archive(itemId);
   }
 
-  async registerView(itemId: string, viewerId?: string) {
-    return this.itemRepository.incrementViews(itemId, viewerId);
+  async registerView(itemId: string, request?: { viewerId?: string; role?: UserRole; campusId?: string | null }) {
+    const item = await this.findById(itemId, {
+      userId: request?.viewerId,
+      role: request?.role,
+      campusId: request?.campusId ?? null
+    });
+
+    return this.itemRepository.incrementViews(item.id, request?.viewerId, request?.campusId ?? null);
   }
 
-  async toggleLike(itemId: string, userId: string) {
-    return this.itemRepository.toggleLike(itemId, userId);
+  async toggleLike(itemId: string, request: { userId: string; role?: UserRole; campusId?: string | null }) {
+    const item = await this.findById(itemId, {
+      userId: request.userId,
+      role: request.role,
+      campusId: request.campusId ?? null
+    });
+
+    return this.itemRepository.toggleLike(item.id, request.userId, request.campusId ?? null);
   }
 
   async findLikesReceivedByOwnerId(ownerId: string, limit?: number) {

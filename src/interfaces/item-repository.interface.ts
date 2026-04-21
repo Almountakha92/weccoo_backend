@@ -17,7 +17,7 @@ export interface IItemRepository {
   findById(id: string): Promise<ItemEntity | null>;
   create(item: CreateItemEntityInput): Promise<ItemEntity>;
   archive(itemId: string): Promise<ItemEntity>;
-  incrementViews(itemId: string, viewerId?: string): Promise<ItemEntity>;
-  toggleLike(itemId: string, userId: string): Promise<{ item: ItemEntity; liked: boolean }>;
+  incrementViews(itemId: string, viewerId?: string, viewerCampusId?: string | null): Promise<ItemEntity>;
+  toggleLike(itemId: string, userId: string, userCampusId?: string | null): Promise<{ item: ItemEntity; liked: boolean }>;
   findLikesReceivedByOwnerId(ownerId: string, limit?: number): Promise<ItemLikeReceivedEntity[]>;
 }
