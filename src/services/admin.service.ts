@@ -48,6 +48,16 @@ export class AdminService {
       throw new HttpError(400, appMessages.common.invalidPayload);
     }
 
+    const campusExists = await this.adminRepository.campusExists(campusId);
+    if (!campusExists) {
+      throw new HttpError(400, 'Campus invalide.');
+    }
+
+    const existing = await this.adminRepository.findUserByEmail(email);
+    if (existing) {
+      throw new HttpError(409, appMessages.auth.emailAlreadyUsed);
+    }
+
     const created = await this.adminRepository.createCampusAdmin({
       fullName,
       university,

@@ -14,6 +14,22 @@ export type AdminAuthUserRecord = {
 };
 
 export class PrismaAdminRepository {
+  async findUserByEmail(email: string) {
+    return prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+      select: { id: true, email: true, role: true, campusId: true } as any
+    }) as any;
+  }
+
+  async campusExists(campusId: string) {
+    const campus = await prisma.campus.findUnique({
+      where: { id: campusId },
+      select: { id: true } as any
+    });
+
+    return Boolean(campus);
+  }
+
   async findAuthUserById(userId: string): Promise<AdminAuthUserRecord | null> {
     const user = (await prisma.user.findUnique({
       where: { id: userId },
