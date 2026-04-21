@@ -24,6 +24,7 @@ const toItemEntity = (item: any): ItemEntity => ({
   ownerName: item.owner?.fullName,
   ownerInitials: item.owner?.fullName ? getInitials(item.owner.fullName) : undefined,
   ownerWhatsappPhone: item.owner?.whatsappPhone,
+  ownerCampusId: item.owner?.campusId,
   photos: Array.isArray(item.photos) ? item.photos : [],
   moderationStatus: item.moderationStatus ?? 'approved',
   moderatedAt: item.moderatedAt ? item.moderatedAt.toISOString() : null,
@@ -38,13 +39,25 @@ const toItemEntity = (item: any): ItemEntity => ({
 export class PrismaItemRepository implements IItemRepository {
   private readonly prismaAny = prisma as any;
 
-  async findAll(request?: { userId?: string; includeOwn?: boolean }): Promise<ItemEntity[]> {
-    const where: any = request?.userId
-      ? {
-          archivedAt: null,
-          OR: [{ moderationStatus: 'approved' }, { ownerId: request.userId }]
-        }
-      : { archivedAt: null, moderationStatus: 'approved' };
+  async findAll(request?: { userId?: string; campusId?: string | null; includeOwn?: boolean }): Promise<ItemEntity[]> {
+    const where: any = {
+      archivedAt: null,
+    };
+
+    if (request?.campusId) {
+      where.owner = {
+        campusId: request.campusId
+      };
+    }
+
+    if (request?.userId) {
+      where.OR = [
+        { moderationStatus: 'approved' },
+        { ownerId: request.userId }
+      ];
+    } else {
+      where.moderationStatus = 'approved';
+    }
 
     const items = await this.prismaAny.item.findMany({
       where,
@@ -52,7 +65,8 @@ export class PrismaItemRepository implements IItemRepository {
         owner: {
           select: {
             fullName: true,
-            whatsappPhone: true
+            whatsappPhone: true,
+            campusId: true
           } as any
         }
       },
@@ -71,7 +85,8 @@ export class PrismaItemRepository implements IItemRepository {
         owner: {
           select: {
             fullName: true,
-            whatsappPhone: true
+            whatsappPhone: true,
+            campusId: true
           } as any
         }
       }
@@ -88,7 +103,8 @@ export class PrismaItemRepository implements IItemRepository {
         owner: {
           select: {
             fullName: true,
-            whatsappPhone: true
+            whatsappPhone: true,
+            campusId: true
           } as any
         }
       }
@@ -122,7 +138,8 @@ export class PrismaItemRepository implements IItemRepository {
         owner: {
           select: {
             fullName: true,
-            whatsappPhone: true
+            whatsappPhone: true,
+            campusId: true
           } as any
         }
       }
@@ -139,7 +156,8 @@ export class PrismaItemRepository implements IItemRepository {
           owner: {
             select: {
               fullName: true,
-              whatsappPhone: true
+              whatsappPhone: true,
+              campusId: true
             } as any
           }
         }
@@ -184,7 +202,8 @@ export class PrismaItemRepository implements IItemRepository {
           owner: {
             select: {
               fullName: true,
-              whatsappPhone: true
+              whatsappPhone: true,
+              campusId: true
             } as any
           }
         }
@@ -213,7 +232,8 @@ export class PrismaItemRepository implements IItemRepository {
           owner: {
             select: {
               fullName: true,
-              whatsappPhone: true
+              whatsappPhone: true,
+              campusId: true
             } as any
           }
         }
@@ -237,7 +257,8 @@ export class PrismaItemRepository implements IItemRepository {
         owner: {
           select: {
             fullName: true,
-            whatsappPhone: true
+            whatsappPhone: true,
+            campusId: true
           } as any
         }
       }

@@ -11,10 +11,10 @@ const controller = new ItemController(service);
 
 export const itemRouter = Router();
 
-itemRouter.get('/', optionalAuthMiddleware, controller.getAll);
+itemRouter.get('/', authMiddleware, controller.getAll);
 itemRouter.get('/received-likes/:userId', authMiddleware, controller.getLikesReceived);
-itemRouter.get('/:id', optionalAuthMiddleware, controller.getById);
-itemRouter.post('/:id/view', optionalAuthMiddleware, controller.registerView);
+itemRouter.get('/:id', authMiddleware, controller.getById);
+itemRouter.post('/:id/view', authMiddleware, controller.registerView);
 itemRouter.post('/:id/like', authMiddleware, controller.toggleLike);
 itemRouter.post('/', authMiddleware, controller.create);
 itemRouter.patch('/:id/archive', authMiddleware, controller.archive);

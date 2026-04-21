@@ -10,7 +10,7 @@ export class ItemController {
 
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const items = await this.itemService.findAll(req.user?.id ? { userId: req.user.id } : undefined);
+      const items = await this.itemService.findAll(req.user ? { userId: req.user.id, campusId: req.user.campusId } : undefined);
       return res.status(200).json(ok(appMessages.items.listFetched, items));
     } catch (error) {
       return next(error);
@@ -19,7 +19,7 @@ export class ItemController {
 
   getById = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
-      const item = await this.itemService.findById(req.params.id, req.user ? { userId: req.user.id, role: req.user.role } : undefined);
+      const item = await this.itemService.findById(req.params.id, req.user ? { userId: req.user.id, role: req.user.role, campusId: req.user.campusId } : undefined);
       return res.status(200).json(ok(appMessages.items.detailFetched, item));
     } catch (error) {
       return next(error);

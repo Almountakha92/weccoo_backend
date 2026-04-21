@@ -7,13 +7,17 @@ import type { UserRole } from '../types/user-role';
 export class ItemService {
   constructor(private readonly itemRepository: IItemRepository) {}
 
-  async findAll(request?: { userId?: string }) {
+  async findAll(request?: { userId?: string; campusId?: string | null }) {
     return this.itemRepository.findAll(request);
   }
 
-  async findById(id: string, request?: { userId?: string; role?: UserRole }) {
+  async findById(id: string, request?: { userId?: string; role?: UserRole; campusId?: string | null }) {
     const item = await this.itemRepository.findById(id);
     if (!item) {
+      throw new HttpError(404, appMessages.common.notFound);
+    }
+
+    if (request?.role === 'student' && item.ownerCampusId !== request.campusId) {
       throw new HttpError(404, appMessages.common.notFound);
     }
 

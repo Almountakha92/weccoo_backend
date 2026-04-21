@@ -13,7 +13,7 @@ export type CreateItemEntityInput = Omit<
 >;
 
 export interface IItemRepository {
-  findAll(request?: { userId?: string }): Promise<ItemEntity[]>;
+  findAll(request?: { userId?: string; campusId?: string | null }): Promise<ItemEntity[]>;
   findById(id: string): Promise<ItemEntity | null>;
   create(item: CreateItemEntityInput): Promise<ItemEntity>;
   archive(itemId: string): Promise<ItemEntity>;

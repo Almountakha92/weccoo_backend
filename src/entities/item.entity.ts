@@ -13,6 +13,7 @@ export interface ItemEntity {
   ownerName?: string;
   ownerInitials?: string;
   ownerWhatsappPhone?: string;
+  ownerCampusId?: string | null;
   moderationStatus: ItemModerationStatus;
   moderatedAt?: string | null;
   moderatedById?: string | null;
